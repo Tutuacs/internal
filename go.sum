@@ -1,5 +1,5 @@
-github.com/Tutuacs/pkg v0.0.0-20241004191258-be67a3445795 h1:n1+3baW0BAcVUrQpJceaT7NboGHHq8ccXW0Lfg8GBmU=
-github.com/Tutuacs/pkg v0.0.0-20241004191258-be67a3445795/go.mod h1:Z10GaKfyWjKJ5KRaSSIaRkQPY3Lwezeor+GrknXDXDQ=
+github.com/Tutuacs/pkg v0.0.0-20241007181905-354830952023 h1:stN2WTKg4alhkuGBkGz2Emu71brCYEyptvf65fhh5p8=
+github.com/Tutuacs/pkg v0.0.0-20241007181905-354830952023/go.mod h1:BderXmLIOtrnf+jsbR/2HA47LPJh3o1ZYZ+1QvHS4X4=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/dgrijalva/jwt-go v3.2.0+incompatible h1:7qlOGliEKZXTDg6OTjfoBKDXWrumCAMpl/TFQ4/5kLM=

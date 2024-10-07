@@ -3,7 +3,7 @@ module github.com/Tutuacs/internal
 go 1.23.1
 
 require (
-	github.com/Tutuacs/pkg v0.0.0-20241004191258-be67a3445795
+	github.com/Tutuacs/pkg v0.0.0-20241007181905-354830952023
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	golang.org/x/crypto v0.28.0
 )
