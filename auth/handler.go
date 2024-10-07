@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/Tutuacs/pkg/enums"
 	"github.com/Tutuacs/pkg/resolver"
 	"github.com/Tutuacs/pkg/routes"
 )
@@ -92,6 +93,7 @@ func (h *Handler) register(w http.ResponseWriter, r *http.Request) {
 	err = store.CreateUser(User{
 		Email:    payload.Email,
 		Password: hashedPassword,
+		Role:     enums.ROLE_CLIENT,
 	})
 	if err != nil {
 		resolver.WriteResponse(w, http.StatusInternalServerError, err)
