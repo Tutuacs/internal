@@ -3,8 +3,11 @@ package auth
 import (
 	"database/sql"
 	"fmt"
+	"strings"
 
 	"github.com/Tutuacs/pkg/db"
+
+	"github.com/Tutuacs/internal/user"
 )
 
 type Store struct {
@@ -21,7 +24,7 @@ func NewStore(conn ...*sql.DB) (*Store, error) {
 		}
 		return &Store{db: con, extends: false, Table: "users"}, nil
 	}
-	return &Store{db: conn[0], extends: true}, nil
+	return &Store{db: conn[0], extends: true, Table: "users"}, nil
 }
 
 func (s *Store) CloseStore() {
@@ -30,30 +33,33 @@ func (s *Store) CloseStore() {
 	}
 }
 
-func (s *Store) GetUserByEmail(email string) (*User, error) {
-	var user User
+func (s *Store) GetUserByEmail(email string) (usr *user.User, err error) {
+	err = nil
+	usr = &user.User{}
 
-	query := "SELECT * FROM " + s.Table + " WHERE email = ?"
+	query := "SELECT * FROM " + s.Table + " WHERE email = $1"
 	row := s.db.QueryRow(query, email)
-	db.ScanRow(row, user)
 
-	if user.ID == 0 {
-		return nil, fmt.Errorf("User not found")
+	db.ScanRow(row, usr)
+
+	if usr.ID == 0 {
+		err = fmt.Errorf("user not found")
+		return
 	}
 
-	return &user, nil
+	return
 }
 
-func (s *Store) GetUserByID(ID int) (*User, error) {
+func (s *Store) GetUserByID(ID int) (*user.User, error) {
 
-	sql := "SELECT * FROM users WHERE id = ?"
+	sql := "SELECT * FROM users WHERE id = $1"
 
 	rows, err := s.db.Query(sql, ID)
 	if err != nil {
 		return nil, err
 	}
 
-	usr := new(User)
+	usr := new(user.User)
 
 	for rows.Next() {
 		err = db.ScanRows(rows, usr)
@@ -65,24 +71,29 @@ func (s *Store) GetUserByID(ID int) (*User, error) {
 	return usr, err
 }
 
-func (s *Store) CreateUser(user User) error {
-	query := "INSERT INTO " + s.Table + " (firstName, lastName, email, password) VALUES (?, ?, ?, ?)"
-	_, err := s.db.Exec(query, user.Email, user.Password)
+func (s *Store) CreateUser(user user.User) error {
+	query := "INSERT INTO " + s.Table + " (name, email, password) VALUES ($1, $2, $3)"
+	_, err := s.db.Exec(query, strings.Split(user.Email, "@")[0], user.Email, user.Password)
 	return err
 }
 
-func (s *Store) GetLogin(email string) (int64, string, string, error) {
-	var userEmail, password string
-	var id int64
+func (s *Store) GetLogin(email string) (usr *user.User, err error) {
 
-	query := fmt.Sprintf("SELECT email, password FROM %s WHERE email = ?", s.Table)
-	err := s.db.QueryRow(query, email).Scan(&id, &userEmail, &password)
+	sql := "SELECT * FROM " + s.Table + " WHERE email = $1"
+
+	rows, err := s.db.Query(sql, email)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			return 0, "", "", fmt.Errorf("user not found")
-		}
-		return 0, "", "", err
+		return nil, err
 	}
 
-	return id, userEmail, password, nil
+	usr = new(user.User)
+
+	for rows.Next() {
+		err = db.ScanRows(rows, usr)
+		if err != nil {
+			return
+		}
+	}
+
+	return
 }
