@@ -4,6 +4,7 @@ import (
 	"database/sql"
 
 	"github.com/Tutuacs/pkg/db"
+	"github.com/Tutuacs/pkg/types"
 )
 
 type Store struct {
@@ -17,8 +18,6 @@ func NewStore(conn ...*sql.DB) (*Store, error) {
 	if len(conn) == 0 {
 
 		con, err := db.NewConnection()
-
-		db.NewConnection()
 
 		return &Store{
 			db:      con,
@@ -49,18 +48,18 @@ func (s *Store) GetConn() *sql.DB {
 
 // TODO: Implement the store consults
 
-func (s *Store) Create(newUser NewUserDto) (usr *User, err error) {
+func (s *Store) Create(newUser types.NewUserDto) (usr *types.User, err error) {
 	sql := "INSERT INTO " + s.Table + " (name, role, email, password) VALUES ($1, $2, $3, $4) RETURNING id, name, role, email, password, createdAt"
 
 	row := s.db.QueryRow(sql, newUser.Name, newUser.Role, newUser.Email, newUser.Password)
 
-	usr = &User{}
+	usr = &types.User{}
 	err = db.ScanRow(row, usr)
 
 	return
 }
 
-func (s *Store) GetByID(ID int64) (*User, error) {
+func (s *Store) GetByID(ID int64) (*types.User, error) {
 
 	sql := "SELECT * FROM " + s.Table + " WHERE id = $1"
 
@@ -69,7 +68,7 @@ func (s *Store) GetByID(ID int64) (*User, error) {
 		return nil, err
 	}
 
-	usr := new(User)
+	usr := new(types.User)
 
 	for rows.Next() {
 		err = db.ScanRows(rows, usr)
@@ -81,7 +80,7 @@ func (s *Store) GetByID(ID int64) (*User, error) {
 	return usr, err
 }
 
-func (s *Store) GetByEmail(Email string) (*User, error) {
+func (s *Store) GetByEmail(Email string) (*types.User, error) {
 
 	sql := "SELECT * FROM " + s.Table + " WHERE email = $1"
 
@@ -90,7 +89,7 @@ func (s *Store) GetByEmail(Email string) (*User, error) {
 		return nil, err
 	}
 
-	usr := new(User)
+	usr := new(types.User)
 
 	for rows.Next() {
 		err = db.ScanRows(rows, usr)
@@ -102,7 +101,7 @@ func (s *Store) GetByEmail(Email string) (*User, error) {
 	return usr, err
 }
 
-func (s *Store) List() (usrs []*User, err error) {
+func (s *Store) List() (usrs []*types.User, err error) {
 
 	sql := "SELECT * FROM " + s.Table
 
@@ -112,7 +111,7 @@ func (s *Store) List() (usrs []*User, err error) {
 	}
 
 	for rows.Next() {
-		usr := new(User)
+		usr := new(types.User)
 		err = db.ScanRows(rows, usr)
 
 		if err != nil {
@@ -127,7 +126,7 @@ func (s *Store) List() (usrs []*User, err error) {
 	return
 }
 
-func (s *Store) Update(id int64, newUser UpdateUserDto) (usr *User, err error) {
+func (s *Store) Update(id int64, newUser types.UpdateUserDto) (usr *types.User, err error) {
 
 	sql := "UPDATE " + s.Table + " SET name = $1, role = $2, email = $3 WHERE id = $4 RETURNING id, name, role, email, createdAt"
 
@@ -141,7 +140,7 @@ func (s *Store) Update(id int64, newUser UpdateUserDto) (usr *User, err error) {
 	return
 }
 
-func (s *Store) Delete(id int64) (usr *User, err error) {
+func (s *Store) Delete(id int64) (usr *types.User, err error) {
 
 	sql := "DELETE FROM " + s.Table + " WHERE id = $1 RETURNING id, name, role, email, createdAt"
 

@@ -9,8 +9,7 @@ import (
 	"github.com/Tutuacs/pkg/password"
 	"github.com/Tutuacs/pkg/resolver"
 	"github.com/Tutuacs/pkg/routes"
-
-	"github.com/Tutuacs/internal/user"
+	"github.com/Tutuacs/pkg/types"
 )
 
 type Handler struct {
@@ -28,7 +27,7 @@ func (h *Handler) BuildRoutes(router routes.Route) {
 }
 
 func (h *Handler) login(w http.ResponseWriter, r *http.Request) {
-	var data LoginDto
+	var data types.LoginDto
 
 	if err := resolver.GetBody(r, &data); err != nil {
 		resolver.WriteResponse(w, http.StatusBadRequest, err)
@@ -64,7 +63,7 @@ func (h *Handler) login(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) register(w http.ResponseWriter, r *http.Request) {
-	var payload RegisterUserDto
+	var payload types.RegisterUserDto
 
 	if err := resolver.GetBody(r, &payload); err != nil {
 		resolver.WriteResponse(w, http.StatusBadRequest, err)
@@ -92,7 +91,7 @@ func (h *Handler) register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Create new user
-	err = store.CreateUser(user.User{
+	err = store.CreateUser(types.User{
 		Email:    payload.Email,
 		Password: hashedPassword,
 		Role:     enums.ROLE_CLIENT,

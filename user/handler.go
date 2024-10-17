@@ -9,6 +9,7 @@ import (
 	"github.com/Tutuacs/pkg/password"
 	"github.com/Tutuacs/pkg/resolver"
 	"github.com/Tutuacs/pkg/routes"
+	"github.com/Tutuacs/pkg/types"
 	"github.com/go-playground/validator"
 )
 
@@ -31,7 +32,7 @@ func (h *Handler) BuildRoutes(router routes.Route) {
 
 func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
 
-	var payload NewUserDto
+	var payload types.NewUserDto
 
 	// resolver.GetBody(r, &payload)
 
@@ -108,7 +109,7 @@ func (h *Handler) list(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if users == nil {
-		resolver.WriteResponse(w, http.StatusOK, []User{})
+		resolver.WriteResponse(w, http.StatusOK, []types.User{})
 		return
 	}
 
@@ -165,7 +166,7 @@ func (h *Handler) update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var body UpdateUserDto
+	var body types.UpdateUserDto
 	if err := resolver.GetBody(r, body); err != nil {
 		resolver.WriteResponse(w, http.StatusBadRequest, map[string]string{"Error getting the body": err.Error()})
 		return

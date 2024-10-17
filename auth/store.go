@@ -6,8 +6,7 @@ import (
 	"strings"
 
 	"github.com/Tutuacs/pkg/db"
-
-	"github.com/Tutuacs/internal/user"
+	"github.com/Tutuacs/pkg/types"
 )
 
 type Store struct {
@@ -33,9 +32,9 @@ func (s *Store) CloseStore() {
 	}
 }
 
-func (s *Store) GetUserByEmail(email string) (usr *user.User, err error) {
+func (s *Store) GetUserByEmail(email string) (usr *types.User, err error) {
 	err = nil
-	usr = &user.User{}
+	usr = &types.User{}
 
 	query := "SELECT * FROM " + s.Table + " WHERE email = $1"
 	row := s.db.QueryRow(query, email)
@@ -50,7 +49,7 @@ func (s *Store) GetUserByEmail(email string) (usr *user.User, err error) {
 	return
 }
 
-func (s *Store) GetUserByID(ID int) (*user.User, error) {
+func (s *Store) GetUserByID(ID int) (*types.User, error) {
 
 	sql := "SELECT * FROM users WHERE id = $1"
 
@@ -59,7 +58,7 @@ func (s *Store) GetUserByID(ID int) (*user.User, error) {
 		return nil, err
 	}
 
-	usr := new(user.User)
+	usr := new(types.User)
 
 	for rows.Next() {
 		err = db.ScanRows(rows, usr)
@@ -71,13 +70,13 @@ func (s *Store) GetUserByID(ID int) (*user.User, error) {
 	return usr, err
 }
 
-func (s *Store) CreateUser(user user.User) error {
+func (s *Store) CreateUser(user types.User) error {
 	query := "INSERT INTO " + s.Table + " (name, email, password) VALUES ($1, $2, $3)"
 	_, err := s.db.Exec(query, strings.Split(user.Email, "@")[0], user.Email, user.Password)
 	return err
 }
 
-func (s *Store) GetLogin(email string) (usr *user.User, err error) {
+func (s *Store) GetLogin(email string) (usr *types.User, err error) {
 
 	sql := "SELECT * FROM " + s.Table + " WHERE email = $1"
 
@@ -86,7 +85,7 @@ func (s *Store) GetLogin(email string) (usr *user.User, err error) {
 		return nil, err
 	}
 
-	usr = new(user.User)
+	usr = new(types.User)
 
 	for rows.Next() {
 		err = db.ScanRows(rows, usr)
