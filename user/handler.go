@@ -81,7 +81,7 @@ func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) list(w http.ResponseWriter, r *http.Request) {
 
-	userLogged := r.Context().Value(guards.UserKey).(*guards.User)
+	userLogged := r.Context().Value(guards.UserKey).(*types.User)
 
 	store, err := NewStore()
 	if err != nil {
@@ -118,7 +118,7 @@ func (h *Handler) list(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) getById(w http.ResponseWriter, r *http.Request) {
 
-	userLogged := r.Context().Value(guards.UserKey).(*guards.User)
+	userLogged := r.Context().Value(guards.UserKey).(*types.User)
 	param := resolver.GetParam(r, "id")
 
 	id, err := strconv.ParseInt(param, 10, 64)
@@ -154,7 +154,7 @@ func (h *Handler) getById(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) update(w http.ResponseWriter, r *http.Request) {
 
-	userLogged := r.Context().Value(guards.UserKey).(*guards.User)
+	userLogged := r.Context().Value(guards.UserKey).(*types.User)
 	param := resolver.GetParam(r, "id")
 
 	id, err := strconv.ParseInt(param, 10, 64)
@@ -202,7 +202,7 @@ func (h *Handler) update(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) delete(w http.ResponseWriter, r *http.Request) {
 
-	userLogged := r.Context().Value(guards.UserKey).(*guards.User)
+	userLogged := r.Context().Value(guards.UserKey).(*types.User)
 	param := resolver.GetParam(r, "id")
 
 	id, err := strconv.ParseInt(param, 10, 64)
