@@ -15,19 +15,24 @@ import (
 
 type Handler struct {
 	subRoute string
+	s        *Store
 }
 
-func NewHandler() *Handler {
-	return &Handler{subRoute: "/user"}
+func NewHandler(s *Store) *Handler {
+	return &Handler{
+		subRoute: "/user",
+		s:        s,
+	}
 }
 
 func (h *Handler) BuildRoutes(router routes.Route) {
 	// TODO implement the routes call
-	router.NewRoute(routes.POST, h.subRoute, guards.AutenticatedRoute(h.create, enums.ROLE_ADMIN))
-	router.NewRoute(routes.GET, h.subRoute, guards.AutenticatedRoute(h.list, enums.ROLE_CLIENT, enums.ROLE_ADMIN))
-	router.NewRoute(routes.GET, h.subRoute+"/{id}", guards.AutenticatedRoute(h.getById, enums.ROLE_CLIENT, enums.ROLE_ADMIN))
-	router.NewRoute(routes.PUT, h.subRoute+"/{id}", guards.AutenticatedRoute(h.update, enums.ROLE_CLIENT, enums.ROLE_ADMIN))
-	router.NewRoute(routes.DELETE, h.subRoute+"/{id}", guards.AutenticatedRoute(h.delete, enums.ROLE_CLIENT, enums.ROLE_ADMIN))
+	g := guards.UseGuard(h.s.db)
+	router.NewRoute(routes.POST, h.subRoute, g.AutenticatedRoute(h.create, enums.ROLE_ADMIN))
+	router.NewRoute(routes.GET, h.subRoute, g.AutenticatedRoute(h.list, enums.ROLE_CLIENT, enums.ROLE_ADMIN))
+	router.NewRoute(routes.GET, h.subRoute+"/{id}", g.AutenticatedRoute(h.getById, enums.ROLE_CLIENT, enums.ROLE_ADMIN))
+	router.NewRoute(routes.PUT, h.subRoute+"/{id}", g.AutenticatedRoute(h.update, enums.ROLE_CLIENT, enums.ROLE_ADMIN))
+	router.NewRoute(routes.DELETE, h.subRoute+"/{id}", g.AutenticatedRoute(h.delete, enums.ROLE_CLIENT, enums.ROLE_ADMIN))
 }
 
 func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
@@ -47,15 +52,9 @@ func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	store, err := NewStore()
-	if err != nil {
-		resolver.WriteResponse(w, http.StatusInternalServerError, map[string]string{"Error opening the store": err.Error()})
-		return
-	}
+	store := h.s
 
-	defer store.CloseStore()
-
-	// TODO: Implement the auth validation after create
+	// TODO: Implement the auth validation before create
 
 	exists, err := store.GetByEmail(payload.Email)
 	if err == nil && exists.ID != 0 {
@@ -83,13 +82,7 @@ func (h *Handler) list(w http.ResponseWriter, r *http.Request) {
 
 	userLogged := r.Context().Value(guards.UserKey).(*types.User)
 
-	store, err := NewStore()
-	if err != nil {
-		resolver.WriteResponse(w, http.StatusInternalServerError, map[string]string{"Error opening the store": err.Error()})
-		return
-	}
-
-	defer store.CloseStore()
+	store := h.s
 
 	if userLogged.Role == enums.ROLE_CLIENT {
 		user, err := store.GetByID(userLogged.ID)
@@ -135,13 +128,7 @@ func (h *Handler) getById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	store, err := NewStore()
-	if err != nil {
-		resolver.WriteResponse(w, http.StatusInternalServerError, map[string]string{"Error opening the store": err.Error()})
-		return
-	}
-
-	defer store.CloseStore()
+	store := h.s
 
 	user, err := store.GetByID(id)
 	if err != nil {
@@ -167,7 +154,7 @@ func (h *Handler) update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var body types.UpdateUserDto
-	if err := resolver.GetBody(r, body); err != nil {
+	if err := resolver.GetBody(r, &body); err != nil {
 		resolver.WriteResponse(w, http.StatusBadRequest, map[string]string{"Error getting the body": err.Error()})
 		return
 	}
@@ -178,18 +165,14 @@ func (h *Handler) update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	body.Role = userLogged.Role
+
 	if (userLogged.Role == enums.ROLE_CLIENT) && (userLogged.ID != id) || (userLogged.Role == enums.ROLE_CLIENT) && (body.Role != enums.ROLE_CLIENT) {
 		resolver.WriteResponse(w, http.StatusForbidden, map[string]string{"Error": "You are not allowed to update this users role"})
 		return
 	}
 
-	store, err := NewStore()
-	if err != nil {
-		resolver.WriteResponse(w, http.StatusInternalServerError, map[string]string{"Error opening the store": err.Error()})
-		return
-	}
-
-	defer store.CloseStore()
+	store := h.s
 
 	updated, err := store.Update(id, body)
 	if err != nil {
@@ -219,13 +202,7 @@ func (h *Handler) delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	store, err := NewStore()
-	if err != nil {
-		resolver.WriteResponse(w, http.StatusInternalServerError, map[string]string{"Error opening the store": err.Error()})
-		return
-	}
-
-	defer store.CloseStore()
+	store := h.s
 
 	deleted, err := store.Delete(id)
 	if err != nil {

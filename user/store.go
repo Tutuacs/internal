@@ -9,36 +9,19 @@ import (
 
 type Store struct {
 	db.Store
-	db      *sql.DB
-	extends bool
-	Table   string
+	db    *sql.DB
+	Table string
 }
 
-func NewStore(conn ...*sql.DB) (*Store, error) {
-	if len(conn) == 0 {
-
-		con, err := db.NewConnection()
-
-		return &Store{
-			db:      con,
-			extends: false,
-			Table:   "users",
-		}, err
+func NewStore(conn *sql.DB) (s *Store, err error) {
+	con, err := db.NewConnection()
+	if err != nil {
+		return
 	}
 
-	return &Store{
-		db:      conn[0],
-		extends: true,
-		Table:   "users",
-	}, nil
-}
+	s = &Store{db: con, Table: "users"}
 
-func (s *Store) CloseStore() {
-	if !s.extends {
-		s.db.Close()
-	}
-
-	// db.ScanRow()
+	return
 }
 
 func (s *Store) GetConn() *sql.DB {
@@ -126,30 +109,42 @@ func (s *Store) List() (usrs []*types.User, err error) {
 	return
 }
 
-func (s *Store) Update(id int64, newUser types.UpdateUserDto) (usr *types.User, err error) {
+func (s *Store) Update(id int64, newUser types.UpdateUserDto) (usr *types.UpdateUserDto, err error) {
 
-	sql := "UPDATE " + s.Table + " SET name = $1, role = $2, email = $3 WHERE id = $4 RETURNING id, name, role, email, createdAt"
+	sql := "UPDATE " + s.Table + " SET name = $1, role = $2, email = $3 WHERE id = $6 RETURNING name, email, role"
 
 	rows, err := s.db.Query(sql, newUser.Name, newUser.Role, newUser.Email, id)
 	if err != nil {
 		return
 	}
 
-	db.ScanRows(rows, usr)
+	usr = &types.UpdateUserDto{}
+	for rows.Next() {
+		err = db.ScanRows(rows, usr)
+		if err != nil {
+			return nil, err
+		}
+	}
 
 	return
 }
 
-func (s *Store) Delete(id int64) (usr *types.User, err error) {
+func (s *Store) Delete(id int64) (usr *types.UpdateUserDto, err error) {
 
 	sql := "DELETE FROM " + s.Table + " WHERE id = $1 RETURNING id, name, role, email, createdAt"
 
-	row, err := s.db.Query(sql, id)
+	rows, err := s.db.Query(sql, id)
 	if err != nil {
 		return
 	}
 
-	db.ScanRows(row, usr)
+	usr = &types.UpdateUserDto{}
+	for rows.Next() {
+		err = db.ScanRows(rows, usr)
+		if err != nil {
+			return nil, err
+		}
+	}
 
 	return
 }

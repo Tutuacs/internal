@@ -3,33 +3,25 @@ package auth
 import (
 	"database/sql"
 	"fmt"
-	"strings"
 
 	"github.com/Tutuacs/pkg/db"
 	"github.com/Tutuacs/pkg/types"
 )
 
 type Store struct {
-	db      *sql.DB
-	extends bool
-	Table   string
+	db    *sql.DB
+	Table string
 }
 
-func NewStore(conn ...*sql.DB) (*Store, error) {
-	if len(conn) == 0 {
-		con, err := db.NewConnection()
-		if err != nil {
-			return nil, err
-		}
-		return &Store{db: con, extends: false, Table: "users"}, nil
+func NewStore(conn *sql.DB) (s *Store, err error) {
+	con, err := db.NewConnection()
+	if err != nil {
+		return
 	}
-	return &Store{db: conn[0], extends: true, Table: "users"}, nil
-}
 
-func (s *Store) CloseStore() {
-	if !s.extends {
-		s.db.Close()
-	}
+	s = &Store{db: con, Table: "users"}
+
+	return
 }
 
 func (s *Store) GetUserByEmail(email string) (usr *types.User, err error) {
@@ -72,7 +64,7 @@ func (s *Store) GetUserByID(ID int) (*types.User, error) {
 
 func (s *Store) CreateUser(user types.User) error {
 	query := "INSERT INTO " + s.Table + " (name, email, password) VALUES ($1, $2, $3)"
-	_, err := s.db.Exec(query, strings.Split(user.Email, "@")[0], user.Email, user.Password)
+	_, err := s.db.Exec(query, user.Name, user.Email, user.Password)
 	return err
 }
 
@@ -95,4 +87,10 @@ func (s *Store) GetLogin(email string) (usr *types.User, err error) {
 	}
 
 	return
+}
+
+func (s *Store) UpdatePassword(email, password string) error {
+	query := "UPDATE " + s.Table + " SET password = $1 WHERE email = $2"
+	_, err := s.db.Exec(query, password, email)
+	return err
 }
